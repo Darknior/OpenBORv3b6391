@@ -11,6 +11,8 @@
 #include "ram.h"
 #include "video.h"
 #include "menu.h"
+#include "openbor.h"
+
 #include <time.h>
 #include <unistd.h>
 
@@ -137,11 +139,32 @@ int main(int argc, char *argv[])
 	dirExists(logsDir, 1);
 	dirExists(screenShotsDir, 1);
 
-	Menu();
+	// Test command line argument to launch MOD
+	int romArg = 0;
+	if(argc > 1) {
+		int argl = strlen(argv[1]);
+		if(argl > 4) {
+			loadsettings();
+			memcpy(packfile, argv[1], argl);
+			if(dirExists(packfile, 0)) {
+				if(packfile[argl-1] != '/')
+					strcat(packfile, "/");
+					romArg = 1;
+			}
+			else if(memcmp( &packfile[strlen(packfile) - 4], ".pak", 4)) {
+				if(fileExists(packfile))
+					romArg = 1;
+			}
+		}
+	}
+	if(!romArg)
+		Menu();
+	
 #ifndef SKIP_CODE
 	getPakName(pakname, -1);
 	video_set_window_title(pakname);
 #endif
+
 	openborMain(argc, argv);
 	borExit(0);
 	return 0;
